@@ -1,0 +1,135 @@
+apply plugin: 'com.android.application'
+apply plugin: com.utils.ReleasePlugin
+// apply from: this.file('copy.gradle')
+apply from: this.file('task.gradle')
+apply from: this.file('cycle.gradle')
+apply from: this.file('dependsOn.gradle')
+
+buildscript {
+    repositories {
+        maven {
+            url uri('../release')
+        }
+    }
+    dependencies {
+        classpath 'com.utils:ReleasePlugin:1.0'
+    }
+}
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "cn.pumpkin.angrypandagradle"
+        minSdkVersion 22
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+configurations.all {
+    resolutionStrategy.force 'com.android.support:support-annotations:26.1.0'
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+}
+
+build.doLast {
+    def fileName = "app-debug.apk"
+    def fromFile = "build/outputs/apk/debug/" + fileName
+    def intoFile = "build/outputs/"
+
+    def applicationId = android.defaultConfig.applicationId
+    def versionName = android.defaultConfig.versionName
+    def time = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(new Date())
+    def buildType = "realse"
+    def channel = "site"
+    def appName = "${applicationId}_v${versionName}_${time}_${buildType}_${channel}.apk"
+    // copy --> rename
+    copy {
+        from fromFile
+        into intoFile
+        rename {
+            appName
+        }
+    }
+
+    // tasks.genCode.execute()
+    hello1.doHelloWork()
+
+    println("=====================build.doLast success.=========================")
+}
+
+task genCode(/*type:Exec, description:"生成Java代码"*/) {
+    //commandLine 'cmd',"/c","swagger_2_java.bat"
+    /*if (System.env.ANDROID_NDK_HOME != null) {
+        def ndkBuild = new File(System.env.ANDROID_NDK_HOME, 'ndk-build')
+        commandLine ndkBuild
+    } else {
+        doLast {
+            println '##################'
+            println 'Reason: NDK ANDROID_NDK_HOME not set.'
+            println '##################'
+        }
+    }*/
+    println("=====================生成Java代码=========================")
+}
+// 自定义任务
+class HelloWorldTask extends DefaultTask {
+    @Optional
+    String message = 'I am davenkin'
+
+    @TaskAction
+    def hello(){
+        println("hello world ${message}")
+    }
+
+    @Override
+    Task doFirst(Action<? super Task> action) {
+        println("hello world \n")
+        return this
+    }
+
+    @Override
+    Task doLast(Action<? super Task> action) {
+        println("goodbye \n")
+        return super.doLast(action)
+    }
+
+    Task doHello(Action<? super Task> action) {
+        println("do hello ! \n")
+        return this
+    }
+
+    def doHelloWork(){
+        println("lets do hello work! \n")
+    }
+}
+
+task hello(type:HelloWorldTask)
+
+task hello1(type:HelloWorldTask){
+    dependsOn hello
+    message ="I am a programmer"
+    doHello{
+        println("do ................... ! \n")
+    }
+}
+
+
+
+

@@ -1,0 +1,25 @@
+
+task deTask << {
+    group 'depends'
+
+    println("doTask hello ...")
+}
+
+task depTask{
+    group 'depends'
+    // dependsOn deTask
+
+    println("depTask hello ...")
+}
+
+tasks.create("depends"){
+    group 'depends'
+    dependsOn depTask
+    doLast {
+        // 通过直接调用execute来完成任务Task
+        deTask.execute()
+        println("tasks create")
+    }
+}
+
+depTask.dependsOn deTask

@@ -1,0 +1,15 @@
+
+tasks test<<{
+    println()
+}
+
+tasks.create("packaging") {
+    group 'packaging'
+    description 'packaging task'
+    dependsOn test
+    enabled   false
+    println "[phase:configuration] packaging"
+    doLast {
+        println "[phase:execution] packaging:doLast()"
+    }
+}

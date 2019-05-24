@@ -1,0 +1,25 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+}
+
+repositories {
+    mavenCentral()
+}
+
+//设置maven deployer,这一段是发布plugin到工程根目录下release文件夹下面
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            //设置插件的GAV参数
+            pom.groupId = 'com.utils'
+            pom.artifactId = 'ReleasePlugin'
+            pom.version = 1.0
+            //文件发布到下面目录
+            repository(url: uri('../release'))
+        }
+    }
+}
